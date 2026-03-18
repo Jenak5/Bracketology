@@ -97,12 +97,8 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
         bracket.r32[r32Index].awayTeam = game.winner;
       }
       bracket.r32[r32Index].status = 'pending';
-      if (bracket.r32[r32Index].winProbability === undefined) {
-        bracket.r32[r32Index].winProbability = calculateWinProbability(
-          bracket.r32[r32Index].homeTeam,
-          bracket.r32[r32Index].awayTeam
-        );
-      }
+      const probs = calculateWinProbability(bracket.r32[r32Index].homeTeam, bracket.r32[r32Index].awayTeam);
+      bracket.r32[r32Index].winProbability = { home: probs.team1, away: probs.team2 };
     }
   });
 
@@ -116,12 +112,8 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
         bracket.sweet16[s16Index].awayTeam = game.winner;
       }
       bracket.sweet16[s16Index].status = 'pending';
-      if (bracket.sweet16[s16Index].winProbability === undefined) {
-        bracket.sweet16[s16Index].winProbability = calculateWinProbability(
-          bracket.sweet16[s16Index].homeTeam,
-          bracket.sweet16[s16Index].awayTeam
-        );
-      }
+      const probs = calculateWinProbability(bracket.sweet16[s16Index].homeTeam, bracket.sweet16[s16Index].awayTeam);
+      bracket.sweet16[s16Index].winProbability = { home: probs.team1, away: probs.team2 };
     }
   });
 
@@ -135,12 +127,8 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
         bracket.elite8[e8Index].awayTeam = game.winner;
       }
       bracket.elite8[e8Index].status = 'pending';
-      if (bracket.elite8[e8Index].winProbability === undefined) {
-        bracket.elite8[e8Index].winProbability = calculateWinProbability(
-          bracket.elite8[e8Index].homeTeam,
-          bracket.elite8[e8Index].awayTeam
-        );
-      }
+      const probs = calculateWinProbability(bracket.elite8[e8Index].homeTeam, bracket.elite8[e8Index].awayTeam);
+      bracket.elite8[e8Index].winProbability = { home: probs.team1, away: probs.team2 };
     }
   });
 
@@ -154,12 +142,8 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
         bracket.finalFour[ffIndex].awayTeam = game.winner;
       }
       bracket.finalFour[ffIndex].status = 'pending';
-      if (bracket.finalFour[ffIndex].winProbability === undefined) {
-        bracket.finalFour[ffIndex].winProbability = calculateWinProbability(
-          bracket.finalFour[ffIndex].homeTeam,
-          bracket.finalFour[ffIndex].awayTeam
-        );
-      }
+      const probs = calculateWinProbability(bracket.finalFour[ffIndex].homeTeam, bracket.finalFour[ffIndex].awayTeam);
+      bracket.finalFour[ffIndex].winProbability = { home: probs.team1, away: probs.team2 };
     }
   });
 
@@ -168,12 +152,8 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
     bracket.championship.homeTeam = ffWinners[0].winner!;
     bracket.championship.awayTeam = ffWinners[1].winner!;
     bracket.championship.status = 'pending';
-    if (bracket.championship.winProbability === undefined) {
-      bracket.championship.winProbability = calculateWinProbability(
-        bracket.championship.homeTeam,
-        bracket.championship.awayTeam
-      );
-    }
+    const probs = calculateWinProbability(bracket.championship.homeTeam, bracket.championship.awayTeam);
+    bracket.championship.winProbability = { home: probs.team1, away: probs.team2 };
   }
 }
 
