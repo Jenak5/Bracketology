@@ -120,14 +120,16 @@ function createGame(id: string, homeTeam: Team, awayTeam: Team): Game {
 
 export function createInitialBracket(): Bracket {
   const bracket: Bracket = {
+    // First Four - Real tournament matchups (11 vs 16 seeds from each region)
     firstFour: [
-      createGame('ff-1', TEAMS.howard, TEAMS.florida),
-      createGame('ff-2', TEAMS.louisville, TEAMS.houston),
-      createGame('ff-3', TEAMS.idaho, TEAMS.nebraska),
-      createGame('ff-4', TEAMS.penn, TEAMS.stMary),
+      createGame('ff-1', TEAMS.idaho, TEAMS.nebraska),     
+      createGame('ff-2', TEAMS.penn, TEAMS.stMary),     
+      createGame('ff-3', TEAMS.howard, TEAMS.furman),      
+      createGame('ff-4', TEAMS.queens, TEAMS.tennesseeSt),
     ],
     r64: [
-      createGame('s-r64-1', TEAMS.florida, TEAMS.idaho),
+      // SOUTH REGION: 1=Florida, 16=Howard/Idaho winner, 8=Clemson, 9=Iowa, 5=Vanderbilt, 12=McNeese, 4=Nebraska, 13=Troy, 6=UNC, 11=VCU, 3=Illinois, 14=Penn, 7=Saint Mary's, 10=Texas A&M, 2=Houston, 15=Idah
+      createGame('s-r64-1', TEAMS.florida, TEAMS.howard),
       createGame('s-r64-2', TEAMS.clemson, TEAMS.iowa),
       createGame('s-r64-3', TEAMS.vanderbilt, TEAMS.mcneese),
       createGame('s-r64-4', TEAMS.nebraska, TEAMS.troy),
@@ -135,7 +137,9 @@ export function createInitialBracket(): Bracket {
       createGame('s-r64-6', TEAMS.illinois, TEAMS.penn),
       createGame('s-r64-7', TEAMS.stMary, TEAMS.texasAM),
       createGame('s-r64-8', TEAMS.houston, TEAMS.idaho),
-      createGame('e-r64-1', TEAMS.duke, TEAMS.howard),
+      
+      // EAST REGION: 1=Duke, 16=Furman, 8=Ohio State, 9=TCU, 5=St John's, 12=Northern Iowa, 4=Kansas, 13=Cal Baptist, 6=Louisville, 11=South Florida, 3=Michigan State, 14=North Dakota State, 7=UCLA, 10=UCF, 2=UConn, 15=Furman
+      createGame('e-r64-1', TEAMS.duke, TEAMS.furman),
       createGame('e-r64-2', TEAMS.ohioState, TEAMS.tcu),
       createGame('e-r64-3', TEAMS.stJohns, TEAMS.northernIowa),
       createGame('e-r64-4', TEAMS.kansas, TEAMS.calBaptist),
@@ -143,22 +147,26 @@ export function createInitialBracket(): Bracket {
       createGame('e-r64-6', TEAMS.michiganState, TEAMS.nDakotaSt),
       createGame('e-r64-7', TEAMS.ucla, TEAMS.ucf),
       createGame('e-r64-8', TEAMS.uconn, TEAMS.furman),
-      createGame('m-r64-1', TEAMS.michigan, TEAMS.idaho),
+
+      // MIDWEST REGION: 1=Michigan, 16=LIU, 8=Georgia, 9=Saint Louis, 5=Texas Tech, 12=Akron, 4=Alabama, 13=Hofstra, 6=Tennessee, 11=TBD, 3=Virginia, 14=Wright State, 7=Kentucky, 10=Santa Clara, 2=Iowa State, 15=Tennessee State
+      createGame('m-r64-1', TEAMS.michigan, TEAMS.liu),
       createGame('m-r64-2', TEAMS.georgia, TEAMS.stLouris),
-      createGame('m-r64-3', TEAMS.alabama, TEAMS.hofstra),
-      createGame('m-r64-4', TEAMS.virginia, TEAMS.wrightState),
+      createGame('m-r64-3', TEAMS.texasTech, TEAMS.akron),
+      createGame('m-r64-4', TEAMS.alabama, TEAMS.hofstra),
       createGame('m-r64-5', TEAMS.tennessee, TEAMS.tennesseeSt),
-      createGame('m-r64-6', TEAMS.iowaState, TEAMS.akron),
+      createGame('m-r64-6', TEAMS.virginia, TEAMS.wrightState),
       createGame('m-r64-7', TEAMS.kentucky, TEAMS.santaClara),
-      createGame('m-r64-8', TEAMS.texasTech, TEAMS.stLouris),
-      createGame('w-r64-1', TEAMS.arizona, TEAMS.liu),
+      createGame('m-r64-8', TEAMS.iowaState, TEAMS.idaho),
+
+      // WEST REGION: 1=Arizona, 16=Queens, 8=Villanova, 9=Utah State, 5=Wisconsin, 12=High Point, 4=Arkansas, 13=Kennesaw State, 6=BYU, 10=Missouri, 3=Gonzaga, 14=TBD, 7=Miami, 11=TBD, 2=Purdue, 15=Queens
+      createGame('w-r64-1', TEAMS.arizona, TEAMS.queens),
       createGame('w-r64-2', TEAMS.villanova, TEAMS.utahState),
       createGame('w-r64-3', TEAMS.wisconsin, TEAMS.highPoint),
       createGame('w-r64-4', TEAMS.arkansas, TEAMS.kennesaw),
-      createGame('w-r64-5', TEAMS.byu, TEAMS.queens),
+      createGame('w-r64-5', TEAMS.byu, TEAMS.missouri),
       createGame('w-r64-6', TEAMS.gonzaga, TEAMS.calBaptist),
-      createGame('w-r64-7', TEAMS.miamiFL, TEAMS.missouri),
-      createGame('w-r64-8', TEAMS.purdue, TEAMS.queens),
+      createGame('w-r64-7', TEAMS.miamiFL, TEAMS.queens),
+      createGame('w-r64-8', TEAMS.purdue, TEAMS.liu),
     ],
     r32: Array(16).fill(null).map((_, i) => ({
       id: `r32-${i}`,
