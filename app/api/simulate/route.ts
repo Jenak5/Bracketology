@@ -45,27 +45,27 @@ async function simulateGame(game: Game): Promise<{ winner: string; reasoning: st
   };
 }
 
-function updateBracketWithResult(bracket: Bracket, gameId: string, winnerName: string, reasoning: string): Bracket {
-  const newBracket = JSON.parse(JSON.stringify(bracket));
+function findGameById(bracket: Bracket, gameId: string): Game | null {
   const allGames = [
-    ...newBracket.firstFour,
-    ...newBracket.r64,
-    ...newBracket.r32,
-    ...newBracket.sweet16,
-    ...newBracket.elite8,
-    ...newBracket.finalFour,
-    ...(newBracket.championship ? [newBracket.championship] : []),
+    ...bracket.firstFour,
+    ...bracket.r64,
+    ...bracket.r32,
+    ...bracket.sweet16,
+    ...bracket.elite8,
+    ...bracket.finalFour,
+    ...(bracket.championship ? [bracket.championship] : []),
   ];
+  return allGames.find((g) => g.id === gameId) || null;
+}
 
-  const game = allGames.find((g: Game) => g.id === gameId);
-  if (!game) return newBracket;
+function updateBracketWithResult(bracket: Bracket, gameId: string, winnerName: string, reasoning: string): void {
+  const game = findGameById(bracket, gameId);
+  if (!game) return;
 
   const winner = game.homeTeam.name === winnerName ? game.homeTeam : game.awayTeam;
   game.winner = winner;
   game.status = 'final';
   game.reasoning = reasoning;
-
-  return newBracket;
 }
 
 function advanceWinnersToNextRound(bracket: Bracket): void {
@@ -94,6 +94,7 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
       bracket.r32[r32Index].homeTeam = game1.winner;
       bracket.r32[r32Index].awayTeam = game2.winner;
       bracket.r32[r32Index].status = 'pending';
+      bracket.r32[r32Index].winner = undefined;
       const probs = calculateWinProbability(
         bracket.r32[r32Index].homeTeam,
         bracket.r32[r32Index].awayTeam
@@ -113,6 +114,7 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
       bracket.sweet16[s16Index].homeTeam = game1.winner;
       bracket.sweet16[s16Index].awayTeam = game2.winner;
       bracket.sweet16[s16Index].status = 'pending';
+      bracket.sweet16[s16Index].winner = undefined;
       const probs = calculateWinProbability(
         bracket.sweet16[s16Index].homeTeam,
         bracket.sweet16[s16Index].awayTeam
@@ -132,6 +134,7 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
       bracket.elite8[e8Index].homeTeam = game1.winner;
       bracket.elite8[e8Index].awayTeam = game2.winner;
       bracket.elite8[e8Index].status = 'pending';
+      bracket.elite8[e8Index].winner = undefined;
       const probs = calculateWinProbability(
         bracket.elite8[e8Index].homeTeam,
         bracket.elite8[e8Index].awayTeam
@@ -151,6 +154,7 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
       bracket.finalFour[ffIndex].homeTeam = game1.winner;
       bracket.finalFour[ffIndex].awayTeam = game2.winner;
       bracket.finalFour[ffIndex].status = 'pending';
+      bracket.finalFour[ffIndex].winner = undefined;
       const probs = calculateWinProbability(
         bracket.finalFour[ffIndex].homeTeam,
         bracket.finalFour[ffIndex].awayTeam
@@ -165,6 +169,7 @@ function advanceWinnersToNextRound(bracket: Bracket): void {
     bracket.championship.homeTeam = bracket.finalFour[0].winner;
     bracket.championship.awayTeam = bracket.finalFour[1].winner;
     bracket.championship.status = 'pending';
+    bracket.championship.winner = undefined;
     const probs = calculateWinProbability(
       bracket.championship.homeTeam,
       bracket.championship.awayTeam
@@ -180,29 +185,36 @@ export async function POST(request: Request) {
   const readable = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        const roundKeys: Array<[string, keyof Bracket]> = [
-          ['First Four', 'firstFour'],
-          ['Round of 64', 'r64'],
-          ['Round of 32', 'r32'],
-          ['Sweet 16', 'sweet16'],
-          ['Elite Eight', 'elite8'],
-          ['Final Four', 'finalFour'],
-          ['Championship', 'championship'],
+        const roundSequence: Array<keyof Bracket> = [
+          'firstFour',
+          'r64',
+          'r32',
+          'sweet16',
+          'elite8',
+          'finalFour',
+          'championship',
         ];
 
-        for (const [roundName, roundKey] of roundKeys) {
-          // Get fresh games from bracket each round
+        for (const roundKey of roundSequence) {
+          // Advance winners to this round before playing it
+          if (roundKey !== 'firstFour') {
+            advanceWinnersToNextRound(bracket);
+          }
+
+          // Get games for this round
           let games = roundKey === 'championship'
             ? (bracket.championship ? [bracket.championship] : [])
             : bracket[roundKey];
 
-          // Filter to only games with real teams (both home and away are not florida)
+          // Filter to only games with real teams (not florida placeholders)
           const playableGames = games.filter(
-            (g) => g && g.homeTeam.id !== 'florida' && g.awayTeam.id !== 'florida'
+            (g) => g && g.homeTeam.id !== 'florida' && g.awayTeam.id !== 'florida' && g.status !== 'final'
           );
 
+          console.log(`Round ${roundKey}: ${playableGames.length} games to play`);
+
           for (const game of playableGames) {
-            if (!game || game.status === 'final') continue;
+            if (!game) continue;
 
             game.status = 'in_progress';
 
@@ -210,7 +222,7 @@ export async function POST(request: Request) {
 
             try {
               const result = await simulateGame(game);
-              bracket = updateBracketWithResult(bracket, game.id, result.winner, result.reasoning);
+              updateBracketWithResult(bracket, game.id, result.winner, result.reasoning);
 
               const update: SimulationUpdate = {
                 type: 'game_completed',
@@ -221,11 +233,9 @@ export async function POST(request: Request) {
               controller.enqueue(encoder.encode(JSON.stringify(update) + '\n'));
             } catch (error) {
               console.error(`Error simulating game ${game.id}:`, error);
+              game.status = 'pending';
             }
           }
-
-          // After each round completes, explicitly advance winners to next round
-          advanceWinnersToNextRound(bracket);
         }
 
         const completeUpdate: SimulationUpdate = {
@@ -235,6 +245,7 @@ export async function POST(request: Request) {
         controller.enqueue(encoder.encode(JSON.stringify(completeUpdate) + '\n'));
         controller.close();
       } catch (error) {
+        console.error('Stream error:', error);
         controller.error(error);
       }
     },
