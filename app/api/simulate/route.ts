@@ -23,45 +23,25 @@ async function simulateGame(game: Game): Promise<{ winner: string; reasoning: st
   const homePercent = Math.round(homeProb * 100);
   const awayPercent = Math.round(awayProb * 100);
 
-  const prompt = `You are an elite March Madness analyst. Make a prediction based on stats AND historical tournament performance.
+  // Randomly select winner based on win probability
+  const random = Math.random();
+  const winner = random < homeProb ? game.homeTeam : game.awayTeam;
+  const winnerPercent = winner === game.homeTeam ? homePercent : awayPercent;
 
-${game.homeTeam.name} (${game.homeTeam.seed} seed)
-KenPom: #${game.homeTeam.kenpom}, AdjEM: +${game.homeTeam.adjEM}
-Off: ${game.homeTeam.adjO.toFixed(1)} | Def: ${game.homeTeam.adjD.toFixed(1)}
-Win Probability: ${homePercent}%
+  // Generate reasoning based on the data
+  const favored = homePercent > awayPercent ? game.homeTeam.name : game.awayTeam.name;
+  const upset = winner === game.homeTeam ? homePercent < 50 : awayPercent < 50;
 
-vs
-
-${game.awayTeam.name} (${game.awayTeam.seed} seed)
-KenPom: #${game.awayTeam.kenpom}, AdjEM: +${game.awayTeam.adjEM}
-Off: ${game.awayTeam.adjO.toFixed(1)} | Def: ${game.awayTeam.adjD.toFixed(1)}
-Win Probability: ${awayPercent}%
-
-Consider:
-- Statistical advantage (${homePercent}% vs ${awayPercent}%)
-- Seed matchup and tournament history
-- Momentum (higher seeds tend to repeat)
-- Upset potential if underdog is playing well
-
-Who wins? Respond with ONLY valid JSON:
-{"winner": "${game.homeTeam.name}" or "${game.awayTeam.name}", "reasoning": "brief explanation"}`;
-
-  const message = await client.chat.completions.create({
-    messages: [{ role: 'user', content: prompt }],
-    model: 'mixtral-8x7b-32768',
-    temperature: 0.7,
-    max_tokens: 200,
-  });
-
-  const content = message.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error('No response from Groq');
+  let reasoning = '';
+  if (upset) {
+    reasoning = `${winner.name} pulls the upset! Despite ${favored} being favored (${Math.max(homePercent, awayPercent)}%), the seeding and tournament dynamics favor ${winner.name}.`;
+  } else {
+    reasoning = `${winner.name} advances as expected. Superior KenPom metrics (AdjEM: +${winner.adjEM}) give them the edge with ${winnerPercent}% win probability.`;
   }
 
-  const result = JSON.parse(content);
   return {
-    winner: result.winner,
-    reasoning: result.reasoning,
+    winner: winner.name,
+    reasoning: reasoning,
   };
 }
 
