@@ -1,0 +1,10 @@
+{
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "functions": {
+    "app/api/simulate/route.ts": {
+      "maxDuration": 300,
+      "memory": 1024
+    }
+  }
+}
