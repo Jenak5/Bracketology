@@ -76,83 +76,106 @@ function updateBracketWithResult(bracket: Bracket, gameId: string, winnerName: s
 }
 
 function advanceWinnersToNextRound(bracket: Bracket): void {
+  // First Four → R64
   bracket.firstFour.forEach((ffGame, index) => {
-    if (ffGame.winner && bracket.r64[index * 2]) {
-      const r64Game = bracket.r64[index * 2];
-      if (r64Game.homeTeam.id === 'florida') {
-        r64Game.homeTeam = ffGame.winner;
-      } else if (r64Game.awayTeam.id === 'florida') {
-        r64Game.awayTeam = ffGame.winner;
+    if (ffGame.winner) {
+      const r64Index = index * 2;
+      if (bracket.r64[r64Index]) {
+        const r64Game = bracket.r64[r64Index];
+        if (r64Game.homeTeam.id === 'florida') {
+          r64Game.homeTeam = ffGame.winner;
+        } else if (r64Game.awayTeam.id === 'florida') {
+          r64Game.awayTeam = ffGame.winner;
+        }
       }
     }
   });
 
-  const r64Winners = bracket.r64.filter((g) => g.winner && g.homeTeam.id !== 'florida');
-  r64Winners.forEach((game, index) => {
-    const r32Index = Math.floor(index / 2);
-    if (bracket.r32[r32Index] && game.winner) {
-      if (index % 2 === 0) {
-        bracket.r32[r32Index].homeTeam = game.winner;
-      } else {
-        bracket.r32[r32Index].awayTeam = game.winner;
-      }
+  // R64 → R32: Pair winners sequentially
+  let r32Index = 0;
+  for (let i = 0; i < bracket.r64.length; i += 2) {
+    const game1 = bracket.r64[i];
+    const game2 = bracket.r64[i + 1];
+
+    if (game1?.winner && game2?.winner && r32Index < bracket.r32.length) {
+      bracket.r32[r32Index].homeTeam = game1.winner;
+      bracket.r32[r32Index].awayTeam = game2.winner;
       bracket.r32[r32Index].status = 'pending';
-      const probs = calculateWinProbability(bracket.r32[r32Index].homeTeam, bracket.r32[r32Index].awayTeam);
+      const probs = calculateWinProbability(
+        bracket.r32[r32Index].homeTeam,
+        bracket.r32[r32Index].awayTeam
+      );
       bracket.r32[r32Index].winProbability = { home: probs.team1, away: probs.team2 };
+      r32Index++;
     }
-  });
+  }
 
-  const r32Winners = bracket.r32.filter((g) => g.winner && g.homeTeam.id !== 'florida');
-  r32Winners.forEach((game, index) => {
-    const s16Index = Math.floor(index / 2);
-    if (bracket.sweet16[s16Index] && game.winner) {
-      if (index % 2 === 0) {
-        bracket.sweet16[s16Index].homeTeam = game.winner;
-      } else {
-        bracket.sweet16[s16Index].awayTeam = game.winner;
-      }
+  // R32 → Sweet 16: Pair winners sequentially
+  let s16Index = 0;
+  for (let i = 0; i < bracket.r32.length; i += 2) {
+    const game1 = bracket.r32[i];
+    const game2 = bracket.r32[i + 1];
+
+    if (game1?.winner && game2?.winner && s16Index < bracket.sweet16.length) {
+      bracket.sweet16[s16Index].homeTeam = game1.winner;
+      bracket.sweet16[s16Index].awayTeam = game2.winner;
       bracket.sweet16[s16Index].status = 'pending';
-      const probs = calculateWinProbability(bracket.sweet16[s16Index].homeTeam, bracket.sweet16[s16Index].awayTeam);
+      const probs = calculateWinProbability(
+        bracket.sweet16[s16Index].homeTeam,
+        bracket.sweet16[s16Index].awayTeam
+      );
       bracket.sweet16[s16Index].winProbability = { home: probs.team1, away: probs.team2 };
+      s16Index++;
     }
-  });
+  }
 
-  const s16Winners = bracket.sweet16.filter((g) => g.winner && g.homeTeam.id !== 'florida');
-  s16Winners.forEach((game, index) => {
-    const e8Index = Math.floor(index / 2);
-    if (bracket.elite8[e8Index] && game.winner) {
-      if (index % 2 === 0) {
-        bracket.elite8[e8Index].homeTeam = game.winner;
-      } else {
-        bracket.elite8[e8Index].awayTeam = game.winner;
-      }
+  // Sweet 16 → Elite 8: Pair winners sequentially
+  let e8Index = 0;
+  for (let i = 0; i < bracket.sweet16.length; i += 2) {
+    const game1 = bracket.sweet16[i];
+    const game2 = bracket.sweet16[i + 1];
+
+    if (game1?.winner && game2?.winner && e8Index < bracket.elite8.length) {
+      bracket.elite8[e8Index].homeTeam = game1.winner;
+      bracket.elite8[e8Index].awayTeam = game2.winner;
       bracket.elite8[e8Index].status = 'pending';
-      const probs = calculateWinProbability(bracket.elite8[e8Index].homeTeam, bracket.elite8[e8Index].awayTeam);
+      const probs = calculateWinProbability(
+        bracket.elite8[e8Index].homeTeam,
+        bracket.elite8[e8Index].awayTeam
+      );
       bracket.elite8[e8Index].winProbability = { home: probs.team1, away: probs.team2 };
+      e8Index++;
     }
-  });
+  }
 
-  const e8Winners = bracket.elite8.filter((g) => g.winner && g.homeTeam.id !== 'florida');
-  e8Winners.forEach((game, index) => {
-    const ffIndex = Math.floor(index / 2);
-    if (bracket.finalFour[ffIndex] && game.winner) {
-      if (index % 2 === 0) {
-        bracket.finalFour[ffIndex].homeTeam = game.winner;
-      } else {
-        bracket.finalFour[ffIndex].awayTeam = game.winner;
-      }
+  // Elite 8 → Final Four: Pair winners sequentially
+  let ffIndex = 0;
+  for (let i = 0; i < bracket.elite8.length; i += 2) {
+    const game1 = bracket.elite8[i];
+    const game2 = bracket.elite8[i + 1];
+
+    if (game1?.winner && game2?.winner && ffIndex < bracket.finalFour.length) {
+      bracket.finalFour[ffIndex].homeTeam = game1.winner;
+      bracket.finalFour[ffIndex].awayTeam = game2.winner;
       bracket.finalFour[ffIndex].status = 'pending';
-      const probs = calculateWinProbability(bracket.finalFour[ffIndex].homeTeam, bracket.finalFour[ffIndex].awayTeam);
+      const probs = calculateWinProbability(
+        bracket.finalFour[ffIndex].homeTeam,
+        bracket.finalFour[ffIndex].awayTeam
+      );
       bracket.finalFour[ffIndex].winProbability = { home: probs.team1, away: probs.team2 };
+      ffIndex++;
     }
-  });
+  }
 
-  const ffWinners = bracket.finalFour.filter((g) => g.winner && g.homeTeam.id !== 'florida');
-  if (bracket.championship && ffWinners.length === 2) {
-    bracket.championship.homeTeam = ffWinners[0].winner!;
-    bracket.championship.awayTeam = ffWinners[1].winner!;
+  // Final Four → Championship: Winners play for title
+  if (bracket.finalFour[0]?.winner && bracket.finalFour[1]?.winner && bracket.championship) {
+    bracket.championship.homeTeam = bracket.finalFour[0].winner;
+    bracket.championship.awayTeam = bracket.finalFour[1].winner;
     bracket.championship.status = 'pending';
-    const probs = calculateWinProbability(bracket.championship.homeTeam, bracket.championship.awayTeam);
+    const probs = calculateWinProbability(
+      bracket.championship.homeTeam,
+      bracket.championship.awayTeam
+    );
     bracket.championship.winProbability = { home: probs.team1, away: probs.team2 };
   }
 }
@@ -177,8 +200,13 @@ export async function POST(request: Request) {
         ];
 
         for (const roundInfo of roundSequence) {
-          const games = roundInfo.key === 'championship' ? (bracket.championship ? [bracket.championship] : []) : bracket[roundInfo.key];
-          
+          const games =
+            roundInfo.key === 'championship'
+              ? bracket.championship
+                ? [bracket.championship]
+                : []
+              : bracket[roundInfo.key];
+
           for (const game of games) {
             if (!game || game.homeTeam.id === 'florida') continue;
 
