@@ -165,30 +165,35 @@ export function createInitialBracket(): Bracket {
       homeTeam: TEAMS.florida,
       awayTeam: TEAMS.florida,
       status: 'pending' as const,
+      winProbability: { home: 50, away: 50 },
     })),
     sweet16: Array(8).fill(null).map((_, i) => ({
       id: `s16-${i}`,
       homeTeam: TEAMS.florida,
       awayTeam: TEAMS.florida,
       status: 'pending' as const,
+      winProbability: { home: 50, away: 50 },
     })),
     elite8: Array(4).fill(null).map((_, i) => ({
       id: `e8-${i}`,
       homeTeam: TEAMS.florida,
       awayTeam: TEAMS.florida,
       status: 'pending' as const,
+      winProbability: { home: 50, away: 50 },
     })),
     finalFour: Array(2).fill(null).map((_, i) => ({
       id: `ff-s-${i}`,
       homeTeam: TEAMS.florida,
       awayTeam: TEAMS.florida,
       status: 'pending' as const,
+      winProbability: { home: 50, away: 50 },
     })),
     championship: {
       id: 'championship',
       homeTeam: TEAMS.florida,
       awayTeam: TEAMS.florida,
       status: 'pending' as const,
+      winProbability: { home: 50, away: 50 },
     },
   };
 
